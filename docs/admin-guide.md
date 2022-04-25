@@ -74,6 +74,17 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
     Yatai uses Nginx ingress controller to facilitates access to deployments and canary deployments.
 
 
+### Default CRD installed:
+
+* *Bento deployment*:
+
+    This CRD manages bento deployments. Users can create deployment with kubectl by using this CRD definition.
+
+* *deployments.component.yatai*:
+
+    Yatai uses this CRD to manage various componenets and depdenency services.
+
+
 ## Local Minikube Installation
 
 Minikube is recommended for development and testing purpose only.
@@ -126,13 +137,18 @@ kubectl get pod --all-namespaces
 minikube kubectl -- get pod --all-namespaces
 
 # With default Yatai installation, the following pods should be running.
-yatai-components   minio-operator-99f8cf4f4-6kzcz                                    1/1     Running             0               45s
-yatai-components   yatai-ingress-controller-ingress-nginx-controller-7cf9494f59z5k   1/1     Running             0               112s
-yatai-components   yatai-minio-console-84568cc987-twqtp                              0/1     ContainerCreating   0               45s
-yatai-operators    deployment-yatai-deployment-comp-operator-58fd6b7667-x65cb        1/1     Running             0               2m16s
-yatai-operators    yatai-csi-driver-image-populator-mkcz2                            2/2     Running             0               2m5s
-yatai-system       yatai-6658d565d8-drk9f                                            1/1     Running             3 (2m41s ago)   4m25s
-yatai-system       yatai-postgresql-0                                                1/1     Running             0               4m24s
+yatai-components   minio-operator-99f8cf4f4-4srwd                                    1/1     Running   0             8m23s
+yatai-components   yatai-ingress-controller-ingress-nginx-controller-7cf9494fz4pwc   1/1     Running   0             13m
+yatai-components   yatai-minio-console-84568cc987-mwbdq                              1/1     Running   0             8m23s
+yatai-components   yatai-minio-ss-0-0                                                1/1     Running   0             7m29s
+yatai-components   yatai-minio-ss-0-1                                                1/1     Running   0             7m29s
+yatai-components   yatai-minio-ss-0-2                                                1/1     Running   0             7m29s
+yatai-components   yatai-minio-ss-0-3                                                1/1     Running   0             7m29s
+yatai-components   yatai-yatai-deployment-operator-85c5d67496-8hkcr                  1/1     Running   0             13m
+yatai-operators    deployment-yatai-deployment-comp-operator-76f9577c87-mbdfv        1/1     Running   0             14m
+yatai-operators    yatai-csi-driver-image-populator-rk6q8                            2/2     Running   0             13m
+yatai-system       yatai-55798745fd-tdxkg                                            1/1     Running   2 (14m ago)   15m
+yatai-system       yatai-postgresql-0                                                1/1     Running   0             15m
 ```
 
 Use minikube tunnel to expose Yatai Web UI locally::
@@ -142,14 +158,20 @@ Use minikube tunnel to expose Yatai Web UI locally::
 sudo minikube tunnel
 ```
 
-Once the minikube tunnel established, you can access the Yatai Web UI: http://localhost:8001/setup?token=<token>. You can find the URL link and the token again using `helm get notes yatai -n yatai-system` command.
+Once the minikube tunnel established, You can:
 
-You can also retrieve the token using `kubectl` command:
+1. Get the Initialization token:
+```bash
+export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai --namespace yatai-system -o jsonpath="{.data.initialization_token}" | base64 --decode)
+```
+
+2. Display the Yatai setup URL and follow the link in your browser to complete the setup.
 
 ```bash
-kubectl get pods --selector=app.kubernetes.io/name=yatai -n yatai-system \
-    -o jsonpath='{.items[0].spec.containers[0].env[?(@.name=="YATAI_INITIALIZATION_TOKEN")].value}'
+echo "Visit: http://yatai.127.0.0.1.sslip.io/setup?token=$YATAI_INITIALIZATION_TOKEN"
 ```
+
+> You can find the URL link and the command to get the token again in the `helm get notes yatai -n yatai-system` command.
 
 
 
