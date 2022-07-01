@@ -193,12 +193,12 @@ To install and operate Yatai in production, we generally recommend using a dedic
     ```bash
     dig +short `kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'` | head -n 1
     ```
-    
+
     Then replace "127.0.0.1" in the generated yatai domain name at this path with the external ip:
     ```bash
     .spec.rules[0].host
     ```
-    
+
     Using this command:
     ```bash
     kubectl -n yatai-system edit ing yatai
@@ -245,9 +245,10 @@ Prerequisites:
     	--set postgresql.enabled=false \
     	--set externalPostgresql.host=$host \
     	--set externalPostgresql.port=$port \
-    	--set externalPostgresql.user=$USER_NAME \
-    	--set externalPostgresql.password=$USER_PASSWORD \
     	--set externalPostgresql.database=$DB_NAME \
+    	--set externalPostgresql.user=$USER_NAME \
+    	--set externalPostgresql.existingSecret=$USER_PASSWORD \
+    	--set externalPostgresql.existingSecretPasswordKey=$USER_PASSWORD \
     	-n yatai-system --create-namespace
     ```
 
@@ -258,10 +259,14 @@ Prerequisites:
 
 ```bash
 helm install yatai yatai/yatai \
-	--set config.docker_registry.server='https://index.docker.io/v1' \
-	--set config.docker_registry.username='MY_DOCKER_USER' \
-	--set config.docker_registry.password='MY_DOCKER_USER_PASSWORD' \
-	--set config.docker_registry.secure=true \
+    --set externalDockerRegistry.enabled=true \
+    --set externalDockerRegistry.secure=true \
+    --set externalDockerRegistry.bentoRepositoryName='yatai-bentos' \
+    --set externalDockerRegistry.modelRepositoryName='yatai-models' \
+    --set externalDockerRegistry.server='https://index.docker.io/v1' \
+    --set externalDockerRegistry.username='MY_DOCKER_HUB_USERNAME' \
+    --set externalDockerRegistry.existingSecret=yatai-docker-registry-credentials \
+    --set externalDockerRegistry.existingSecretPasswordKey=password \
 	-n yatai-system --create-namespace
 ```
 
